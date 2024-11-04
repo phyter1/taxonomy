@@ -1,0 +1,148 @@
+version: 3
+domain: Bun File System API - Bun.write()
+created_by: "ryan.phyter.1@gmail.com"
+seed_examples:
+  - context: |
+      Bun.write() is a multi-tool function for writing different types of data to disk. It accepts two parameters: a destination and the data to write. The destination can be a string path, URL, or BunFile. The function returns a Promise<number> representing the number of bytes written.
+    questions_and_answers:
+      - question: |
+          What are the three valid destination types for Bun.write()?
+        answer: |
+          The three valid destination types for Bun.write() are:
+          1. string (file path)
+          2. URL (file:// descriptor)
+          3. BunFile instance
+      - question: |
+          What type of value does Bun.write() return?
+        answer: |
+          Bun.write() returns a Promise<number> that resolves to the number of bytes written.
+      - question: |
+          What are the supported data types that can be written using Bun.write()?
+        answer: |
+          Bun.write() supports writing:
+          - strings
+          - Blobs (including BunFile)
+          - ArrayBuffer or SharedArrayBuffer
+          - TypedArray (Uint8Array, etc.)
+          - Response objects
+      - question: |
+          How would you write a string to a file using Bun.write()?
+        answer: |
+          You can write a string to a file using: await Bun.write("output.txt", "your string data here");
+      - question: |
+          How can you write the body of an HTTP response to a file?
+        answer: |
+          You can write an HTTP response body to a file using:
+          const response = await fetch(url);
+          await Bun.write("output.file", response);
+
+  - context: |
+      Bun.write() is optimized to use the fastest available system calls on the current platform. For example, on Linux it can use copy_file_range for file-to-file copies, sendfile for file-to-pipe operations, and splice for pipe-to-pipe transfers. On macOS, it uses clonefile for new files and fcopyfile for existing ones.
+    questions_and_answers:
+      - question: |
+          What system call does Bun.write() use for file-to-file copies on Linux?
+        answer: |
+          On Linux, Bun.write() uses the copy_file_range system call for file-to-file copies.
+      - question: |
+          What system call is used on macOS when writing to a new file?
+        answer: |
+          On macOS, Bun.write() uses the clonefile system call when writing to a new file.
+      - question: |
+          How does Bun.write() handle file-to-pipe operations on Linux?
+        answer: |
+          On Linux, Bun.write() uses the sendfile system call for file-to-pipe operations.
+      - question: |
+          What system call is used for existing files on macOS?
+        answer: |
+          On macOS, Bun.write() uses the fcopyfile system call when writing to existing files.
+      - question: |
+          How does Bun.write() handle pipe-to-pipe transfers on Linux?
+        answer: |
+          On Linux, Bun.write() uses the splice system call for pipe-to-pipe transfers.
+
+  - context: |
+      Bun.write() can be used to write to standard output (stdout) and perform file copies. It provides a simple way to copy files between locations and write data to the terminal. When writing byte arrays, you can use TypedArrays like Uint8Array.
+    questions_and_answers:
+      - question: |
+          How do you copy a file to another location using Bun.write()?
+        answer: |
+          To copy a file:
+          const input = Bun.file("input.txt");
+          await Bun.write("output.txt", input);
+      - question: |
+          How can you write data to stdout using Bun.write()?
+        answer: |
+          You can write to stdout using:
+          await Bun.write(Bun.stdout, data);
+      - question: |
+          How do you write a byte array to a file using Bun.write()?
+        answer: |
+          To write a byte array:
+          const data = new Uint8Array([...]);
+          await Bun.write("output.txt", data);
+      - question: |
+          Can Bun.write() handle both text and binary data?
+        answer: |
+          Yes, Bun.write() can handle both text data (strings) and binary data (TypedArrays, ArrayBuffers, Blobs).
+      - question: |
+          How can you implement a basic 'cat' command using Bun.write()?
+        answer: |
+          A basic 'cat' command can be implemented as:
+          const path = resolve(process.argv.at(-1));
+          await Bun.write(Bun.stdout, Bun.file(path));
+
+  - context: |
+      Bun.write() handles error cases and edge conditions gracefully. It manages file permissions, handles existing files, and provides appropriate error messages. The function also ensures atomic writes for certain operations and properly manages file descriptors.
+    questions_and_answers:
+      - question: |
+          What happens if you try to write to a file without proper permissions?
+        answer: |
+          Bun.write() will throw a permission error if the process doesn't have write access to the destination.
+      - question: |
+          How does Bun.write() handle writing to existing files?
+        answer: |
+          Bun.write() will overwrite existing files by default, replacing their entire contents with the new data.
+      - question: |
+          Are writes using Bun.write() atomic?
+        answer: |
+          Small writes are atomic on most systems. For larger writes, atomicity depends on the underlying filesystem and operating system.
+      - question: |
+          What happens if the destination directory doesn't exist?
+        answer: |
+          Bun.write() will throw an error if the parent directory of the destination file doesn't exist - it won't create directories automatically.
+      - question: |
+          How does Bun.write() handle file descriptor cleanup?
+        answer: |
+          Bun.write() automatically closes file descriptors after the write operation is complete, ensuring no resource leaks.
+
+  - context: |
+      Bun.write() provides various performance optimizations and features for efficient file operations. It includes capabilities for handling large files, streaming data, and optimizing memory usage. The API is designed to minimize overhead and maximize throughput.
+    questions_and_answers:
+      - question: |
+          How does Bun.write() handle large file operations efficiently?
+        answer: |
+          Bun.write() uses efficient system calls and streaming operations for large files, minimizing memory usage by not loading the entire file into memory.
+      - question: |
+          What's the advantage of using Bun.write() over traditional Node.js fs.writeFile?
+        answer: |
+          Bun.write() uses optimized system calls specific to each platform, resulting in better performance compared to traditional Node.js file operations.
+      - question: |
+          Can Bun.write() handle concurrent writes to the same file?
+        answer: |
+          While Bun.write() doesn't provide built-in file locking, each write operation is handled atomically at the system level where supported.
+      - question: |
+          How does memory usage scale with file size in Bun.write()?
+        answer: |
+          Bun.write() uses streaming and efficient system calls to keep memory usage constant regardless of file size when possible.
+      - question: |
+          What's the performance impact of writing to stdout vs files?
+        answer: |
+          Writing to stdout is optimized using platform-specific system calls (like sendfile on Linux), making it nearly as efficient as writing to files.
+
+document_outline: |
+  This document covers the Bun.write() API, including its supported destination and data types, platform-specific optimizations using system calls, common use cases like file copying and writing to stdout, error handling, and performance characteristics.
+document:
+  repo: https://github.com/oven-sh/bun
+  commit: 80cb9e7
+  patterns:
+    - docs/runtime/bun-file-io.md

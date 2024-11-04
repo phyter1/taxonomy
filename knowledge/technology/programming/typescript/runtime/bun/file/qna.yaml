@@ -1,0 +1,144 @@
+version: 3
+domain: Bun File System API - Bun.file()
+created_by: "ryan.phyter.1@gmail.com"
+seed_examples:
+  - context: |
+      Bun provides optimized APIs for reading and writing files. The Bun.file(path) function creates a BunFile instance that represents a lazily-loaded file. Initializing it does not actually read the file from disk. The BunFile conforms to the Blob interface and supports various formats for reading contents.
+    questions_and_answers:
+      - question: |
+          What does Bun.file() return and what is its main characteristic?
+        answer: |
+          Bun.file() returns a BunFile instance that represents a lazily-loaded file, meaning the file is not actually read from disk when initialized.
+      - question: |
+          What interface does BunFile conform to?
+        answer: |
+          BunFile conforms to the Blob interface.
+      - question: |
+          What are the four main methods to read contents from a BunFile?
+        answer: |
+          The four main methods to read contents from a BunFile are:
+          - text() - contents as a string
+          - stream() - contents as ReadableStream
+          - arrayBuffer() - contents as ArrayBuffer
+          - bytes() - contents as Uint8Array
+      - question: |
+          Can Bun.file() point to a non-existent file?
+        answer: |
+          Yes, a BunFile can point to a location on disk where a file does not exist. In this case, size will be 0 and exists() will return false.
+      - question: |
+          What is the default MIME type for a BunFile and how can it be overridden?
+        answer: |
+          The default MIME type is "text/plain;charset=utf-8". It can be overridden by passing a type option in the second argument, like Bun.file(path, { type: "application/json" }).
+
+  - context: |
+      BunFile instances have several properties and methods. The size property shows the number of bytes, and type shows the MIME type. Files can be referenced using file paths, numerical file descriptors, or file:// URLs. Bun also exposes stdin, stdout, and stderr as instances of BunFile.
+    questions_and_answers:
+      - question: |
+          What are the three ways to reference a file using Bun.file()?
+        answer: |
+          Files can be referenced using:
+          1. File paths
+          2. Numerical file descriptors
+          3. file:// URLs
+      - question: |
+          What built-in BunFile instances does Bun expose?
+        answer: |
+          Bun exposes stdin (readonly), stdout, and stderr as BunFile instances.
+      - question: |
+          What properties are available on a BunFile instance?
+        answer: |
+          BunFile instances have two main properties:
+          - size: number of bytes
+          - type: MIME type
+      - question: |
+          How can you check if a file exists using BunFile?
+        answer: |
+          You can use the exists() method which returns a Promise<boolean>, like: await bunFile.exists()
+      - question: |
+          How can you read JSON data from a BunFile?
+        answer: |
+          You can use the json() method which returns a Promise with the parsed JSON data.
+
+  - context: |
+      FileSink provides incremental writing capabilities for BunFile. You can get a FileSink instance using the writer() method on a BunFile. The writer has methods like write(), flush(), and end() for managing the writing process. It also supports configuring the highWaterMark for buffer management.
+    questions_and_answers:
+      - question: |
+          How do you get a FileSink instance from a BunFile?
+        answer: |
+          You can get a FileSink instance by calling the writer() method on a BunFile: const writer = bunFile.writer()
+      - question: |
+          What is the purpose of the highWaterMark in FileSink?
+        answer: |
+          The highWaterMark determines when the FileSink's internal buffer will auto-flush. It can be configured when creating the writer using the highWaterMark option.
+      - question: |
+          What methods are available on a FileSink for writing management?
+        answer: |
+          FileSink provides three main methods for writing management:
+          - write() - writes data to buffer
+          - flush() - writes buffer to disk
+          - end() - flushes buffer and closes the file
+      - question: |
+          How can you prevent a FileSink from keeping the process alive?
+        answer: |
+          You can call writer.unref() to prevent the FileSink from keeping the process alive. It can be "re-referenced" later using writer.ref().
+      - question: |
+          What does the flush() method return?
+        answer: |
+          The flush() method returns the number of bytes that were flushed to disk.
+
+  - context: |
+      BunFile provides various ways to handle file paths and URLs. The path can be relative to the current working directory or absolute. When using URLs, they must use the file:// protocol. The current file can be referenced using import.meta.url.
+    questions_and_answers:
+      - question: |
+          How can you create a BunFile reference to the current file?
+        answer: |
+          You can create a BunFile reference to the current file using:
+          Bun.file(new URL(import.meta.url))
+      - question: |
+          What happens when you provide a relative path to Bun.file()?
+        answer: |
+          When providing a relative path, it is resolved relative to the current working directory (cwd).
+      - question: |
+          Can you use HTTP URLs with Bun.file()?
+        answer: |
+          No, Bun.file() only accepts file:// URLs. HTTP URLs are not supported.
+      - question: |
+          How do you handle file paths with spaces using Bun.file()?
+        answer: |
+          File paths with spaces are handled automatically - you can pass them as normal strings without special encoding.
+      - question: |
+          Can you use path traversal (../) with Bun.file()?
+        answer: |
+          Yes, you can use path traversal (../) in the path argument, and it will be resolved relative to the current working directory.
+
+  - context: |
+      BunFile instances are optimized for performance and memory usage. The lazy loading means files aren't read until needed, and the streaming capabilities allow for efficient handling of large files. The implementation uses the fastest available system calls on each platform.
+    questions_and_answers:
+      - question: |
+          Why is BunFile's lazy loading beneficial for performance?
+        answer: |
+          Lazy loading improves performance because files aren't read from disk until their contents are actually needed, reducing unnecessary I/O operations.
+      - question: |
+          How can you efficiently handle large files with BunFile?
+        answer: |
+          Large files can be efficiently handled using the stream() method, which returns a ReadableStream for processing the file in chunks.
+      - question: |
+          What happens to file handles when using BunFile?
+        answer: |
+          File handles are automatically managed and closed when no longer needed, unless explicitly kept open with a FileSink.
+      - question: |
+          Can multiple BunFile instances reference the same file?
+        answer: |
+          Yes, multiple BunFile instances can reference the same file, and each maintains its own state and position.
+      - question: |
+          How does BunFile handle file watching or changes?
+        answer: |
+          BunFile doesn't include built-in file watching. Each read operation gets the current state of the file at that moment.
+
+document_outline: |
+  This document covers the Bun.file() API, including BunFile creation, file reading methods, properties, and the FileSink API for incremental writing. It explains how to work with files efficiently using Bun's optimized file system operations.
+document:
+  repo: https://github.com/oven-sh/bun
+  commit: 80cb9e7
+  patterns:
+    - docs/runtime/bun-file-io.md
